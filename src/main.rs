@@ -4,6 +4,7 @@ use actix_web::{App, HttpServer};
 mod api;
 use api::fetch::fetch;
 use api::insert::insert;
+use api::ping_test;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -11,6 +12,7 @@ async fn main() -> std::io::Result<()> {
         App::new()
             .service(insert) // Insert endpoint
             .service(fetch) // Fetch endpoint
+                            // Endpoints to add: authenticate
     })
     .bind("127.0.0.1:8080")?
     .run()
