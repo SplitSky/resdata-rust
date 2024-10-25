@@ -1,17 +1,18 @@
-use actix_web::{get, App, HttpServer, Responder};
+use actix_web::{App, HttpServer};
 
-#[get("/")]
-async fn index() -> impl Responder {
-    return "Hello World";
-}
+// Import the api module
+mod api;
+use api::fetch::fetch;
+use api::insert::insert;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
-        App::new().service(index) // Attach the index value
+        App::new()
+            .service(insert) // Insert endpoint
+            .service(fetch) // Fetch endpoint
     })
     .bind("127.0.0.1:8080")?
     .run()
     .await
 }
-
