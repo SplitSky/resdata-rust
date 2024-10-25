@@ -1,23 +1,17 @@
-struct Person {
-    name: String,
-    age: u8,
-    height: i32,
-    weight: i32,
+use actix_web::{get, App, HttpServer, Responder};
+
+#[get("/")]
+async fn index() -> impl Responder {
+    return "Hello World";
 }
 
-fn main() {
-    let _person = Person {
-        name: String::from("Alice"),
-        age: 30,
-        height: 20,
-        weight: 20,
-    };
-    println!("{} is {} years old", _person.name, _person.age);
-    println!("{} has area {}", _person.name, _person.area())
+#[actix_web::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        App::new().service(index) // Attach the index value
+    })
+    .bind("127.0.0.1:8080")?
+    .run()
+    .await
 }
 
-impl Person {
-    fn area(&self) -> i32 {
-        return self.height * self.weight;
-    }
-}
