@@ -1,0 +1,9 @@
+[package]
+name = "resdataRust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+actix-web = "4.0" # Actix Web framework
+serde = {version = "1.0", features =["derive"]} # Serde for JSON serialisation/deserialisation
+serde_json = "1.0" # Serde JSON Support
