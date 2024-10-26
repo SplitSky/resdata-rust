@@ -1,6 +1,8 @@
 use crate::api::models::Dataset; // data structures
 use actix_web::{get, post, web, HttpResponse, Responder};
+use futures::task::waker;
 use serde_json::json;
+use mongodb::{bson::doc, options::{ClientOptions, ServerApi, ServerApiVersion}, Client};
 
 #[post("/insert")]
 pub async fn insert(payload: web::Bytes) -> impl Responder {
@@ -45,6 +47,35 @@ pub async fn fetch(id: web::Path<u32>) -> impl Responder {
 pub async fn healthcheck() -> impl Responder {
     // Placeholder for health check logic (e.g., ping database or services)
     // Here, we'll just return a simple JSON status
+    
+    // sample mongo code start
+    
+    
+    
+    #[tokio::main]
+    async fn main() -> mongodb::error::Result<()> {
+        let mut connection_string =  "mongodb+srv://splitsky:<db_password>@cluster0.xfvstgi.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0";
+        ClientOptions::parse(connection_string);
+          $.await?;
+    
+      // Set the server_api field of the client_options object to set the version of the Stable API on the client
+      let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
+      client_options.server_api = Some(server_api);
+    
+      // Get a handle to the cluster
+      let client = Client::with_options(client_options)?;
+    
+      // Ping the server to see if you can connect to the cluster
+      client
+        .database("admin")
+        .run_command(doc! {"ping": 1}, None)
+        .await?;
+      println!("Pinged your deployment. You successfully connected to MongoDB!");
+    
+      Ok(())
+    }
+    // sample mongo code end
+
 
     // Manually create a JSON response using serde_json::json macro
     let health_status = json!({
