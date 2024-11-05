@@ -1,3 +1,4 @@
+// ftl handling functions
 use crate::model::task::Task;
 use crate::model::task::TaskState;
 use crate::repository::ddb::DDBRepository;
@@ -13,7 +14,7 @@ use actix_web::{
 };
 use derive_more::Display;
 use serde::{Deserialize, Serialize};
-//use std::fmt::{Display, Debug};
+use std::fmt::{Debug, Display}; // debugging remove for production code TODO:
 
 #[derive(Deserialize, Serialize)]
 pub struct TaskIdentifier {
@@ -34,12 +35,10 @@ pub struct SubmitTaskRequest {
 
 #[derive(Debug, Display)]
 pub enum TaskError {
-    HealthcheckFailed,     // mongo can't synch
-    AuthenticationRefused, // bad header
-    CallNotFound,          // not found status
-    UpdateFailed,          // failed dependency
-    CreationFailure,       // failed dependency
-    BadRequest,            // bad request
+    TaskNotFound,
+    TaskUpdateFailure,
+    TaskCreationFailure,
+    BadTaskRequest,
 }
 
 impl ResponseError for TaskError {
@@ -51,12 +50,10 @@ impl ResponseError for TaskError {
 
     fn status_code(&self) -> StatusCode {
         match self {
-            TaskError::HealthcheckFailed => StatusCode::SERVICE_UNAVAILABLE,
-            TaskError::AuthenticationRefused => StatusCode::UNAUTHORIZED,
-            TaskError::CallNotFound => StatusCode::NOT_FOUND,
-            TaskError::UpdateFailed => StatusCode::FAILED_DEPENDENCY,
-            TaskError::CreationFailure => StatusCode::FAILED_DEPENDENCY,
-            TaskError::BadRequest => StatusCode::BAD_REQUEST,
+            TaskError::TaskNotFound => StatusCode::NOT_FOUND,
+            TaskError::TaskUpdateFailure => StatusCode::FAILED_DEPENDENCY,
+            TaskError::TaskCreationFailure => StatusCode::FAILED_DEPENDENCY,
+            TaskError::BadTaskRequest => StatusCode::BAD_REQUEST,
         }
     }
 }
