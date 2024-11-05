@@ -1,26 +1,33 @@
-use crate::api::{fetch_dataset, health_check, insert_dataset};
-use crate::repository::MongoRepo;
-use actix_web::{web, App, HttpServer};
-use dotenv::dotenv;
-use std::env;
-
 mod api;
-mod models;
+mod model;
 mod repository;
+
+use actix_web::{middleware::Logger, web::Data, App, HttpServer};
+use api::task::{complete_task, fail_task, get_task, pause_task, start_task, submit_task};
+use repository::ddb::DDBRepository;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    dotenv().ok();
-    let mongo_repo = MongoRepo::init().await;
+    std::env::set_var("RUST_LOG", "debug");
+    std::env::set_var("RUST_BACKTRACE", "1");
+    env_logger::init();
 
+    let config = aws_config::load_from_env().await;
     HttpServer::new(move || {
+        let ddb_repo: DDBRepository = DDBRepository::init(String::from("task"), config.clone());
+        let ddb_data = Data::new(ddb_repo);
+        let logger = Logger::default();
         App::new()
-            .app_data(web::Data::new(mongo_repo.clone()))
-            .route("/health", web::get().to(health_check))
-            .route("/dataset", web::post().to(insert_dataset))
-            .route("/dataset/{id}", web::get().to(fetch_dataset))
+            .wrap(logger)
+            .app_data(ddb_data)
+            .service(get_task)
+            .service(submit_task)
+            .service(start_task)
+            .service(complete_task)
+            .service(pause_task)
+            .service(fail_task)
     })
-    .bind(("127.0.0.1", 8080))?
+    .bind(("127.0.0.1", 80))?
     .run()
     .await
 }
