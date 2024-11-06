@@ -5,6 +5,7 @@ mod repository;
 use actix_web::{middleware::Logger, web::Data, App, HttpServer};
 use api::ftl::{fetch_dataset, healthcheck, insert_dataset};
 use repository::ddb::DDBRepository;
+use repository::mongo::MongoRepository;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -23,6 +24,7 @@ async fn main() -> std::io::Result<()> {
             .service(healthcheck)
             .service(insert_dataset)
             .service(fetch_dataset)
+        // .service() // add more calls
     })
     .bind(("127.0.0.1", 80))?
     .run()
