@@ -3,49 +3,36 @@ mod model;
 mod repository;
 
 use actix_web::{middleware::Logger, web::Data, App, HttpServer};
-use api::ftl::healthcheck; // api functions
-use mongodb::{
-    bson::doc,
-    //options::{ClientOptions, ServerApi, ServerApiVersion},
-    //Client,
-};
+use api::{testing_insert::insert_dataset, testing_read::get_document}; // api functions
+use dotenv::dotenv;
+use mongodb::{options::ClientOptions, Client};
+use std::env;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
     std::env::set_var("RUST_LOG", "debug");
     std::env::set_var("RUST_BACKTRACE", "1");
     env_logger::init();
+    // fetch environmental variables
+    dotenv().ok();
+    let _connection_string = env::var("MONGO_URI").expect("MONGO_URI must be set in the .env");
 
-    // MongoDB configuration
-    // Initialize MongoRepository
-    // let mongo_repo = MongoRepository::new(mongo_client, String::from("task"));
-    // let mongo_data = Data::new(mongo_repo);
+    // Parse and configure MongoDB client options
+    let client_options = ClientOptions::parse(&_connection_string)
+        .await
+        .expect("Failed to Parse Mongo URI");
+    let mongo_client =
+        Client::with_options(client_options).expect("Failed to initialise MongoDB client");
+    // wrap mongo client in Actix Data for shared state
+    let _mongo_data = Data::new(mongo_client);
 
-    // NOTE: Working MongoDB client call
-    //
-    // let mut client_options =
-    //  .await;
-    // Set the server_api field of the client_options object to set the version of the Stable API on the client
-    // let server_api = ServerApi::builder().version(ServerApiVersion::V1).build();
-    // client_options.server_api = Some(server_api);
-    // Get a handle to the cluster
-    // let client = Client::with_options(client_options);
-    // Ping the server to see if you can connect to the cluster
-    // client
-    //.database("admin")
-    //  .run_command(doc! {"ping": 1}, None)
-    //  .await?;
-    //println!("Pinged your deployment. You successfully connected to MongoDB!");
-    //
-    //
-    //
-    // Set up the Actix server with MongoDB repository as shared state
     HttpServer::new(move || {
         let logger = Logger::default();
         App::new()
             .wrap(logger)
-            //.app_data(mongo_data.clone()) // MongoDB shared state
-            .service(healthcheck)
+            .app_data(_mongo_data.clone()) // MongoDB shared state
+            .service(insert_dataset)
+            .service(get_document)
         // .service() // add more calls
     })
     .bind(("127.0.0.1", 8081))?
