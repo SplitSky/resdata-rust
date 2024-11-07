@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use strum_macros::{Display, EnumString};
 use uuid::Uuid;
-use std::collections::HashMap;
 
 #[derive(Serialize, EnumString, Display, Eq, PartialEq)]
 pub enum TaskState {
@@ -43,27 +43,23 @@ impl Task {
     }
 }
 
-
 // resdata data models
-
-#[derive(Serialize, Deserialize)]
-pub struct Dataset<K, V> {
-    pub dataset_uuid: String,
-    pub name: String,
-    pub data_type: String,
-    pub author: Vec<K, V>,
-    pub data_headings: Vec<String>
-}
-
-impl Dataset {
-    pub fn new(name: String, data_type: String) -> Task {
-        Task {
-            dataset_uuid: Uuid::new_v4().to_string(),
-            name: name, 
-            data_type: 
-        }
-    }
-}
-
-#[derive(Serialize, Deserialize)]
-pub struct 
+//
+// #[derive(Serialize, Deserialize)]
+// pub struct Dataset<K, V> {
+//     pub dataset_uuid: String,
+//     pub name: String,
+//     pub data_type: String,
+//     pub author: Vec<K, V>,
+//     pub data_headings: Vec<String>
+// }
+//
+// impl Dataset {
+//     pub fn new(name: String, data_type: String) -> Task {
+//         Task {
+//             dataset_uuid: Uuid::new_v4().to_string(),
+//             name: name,
+//             data_type:
+//         }
+//     }
+// }
