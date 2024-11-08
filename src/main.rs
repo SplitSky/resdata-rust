@@ -17,6 +17,7 @@ async fn main() -> std::io::Result<()> {
     dotenv().ok();
     let _connection_string = env::var("MONGO_URI").expect("MONGO_URI must be set in the .env");
 
+    println!("{}", _connection_string.to_string());
     // Parse and configure MongoDB client options
     let client_options = ClientOptions::parse(&_connection_string)
         .await
