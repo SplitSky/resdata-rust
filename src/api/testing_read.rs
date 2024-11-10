@@ -1,4 +1,4 @@
-use crate::api::model::MyDocument;
+use crate::model::datamodels::MyDocument;
 use actix_web::{get, web, HttpResponse, Responder};
 use mongodb::bson::{doc, oid::ObjectId};
 use mongodb::Client;

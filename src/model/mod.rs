@@ -1,1 +1,1 @@
-pub mod datamodel;
+pub mod datamodels;

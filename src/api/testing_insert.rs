@@ -1,8 +1,8 @@
-use crate::api::model::MyDocument;
+use crate::model::datamodels::MyDocument;
+
 use actix_web::{post, web, HttpResponse, Responder};
 use mongodb::Client;
 use serde_json::json;
-
 #[post("/insert")]
 pub async fn insert_dataset(
     client: web::Data<Client>,
