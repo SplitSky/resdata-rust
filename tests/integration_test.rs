@@ -4,6 +4,17 @@ use reqwest::Client;
 use std::error::Error;
 use std::time::Duration; // Replace `your_crate_name` with the crate name from Cargo.toml
 
+use mongodb::bson::oid::ObjectId;
+use serde::{Deserialize, Serialize};
+
+#[derive(Clone, Debug, Serialize, Deserialize)]
+pub struct MyDocument {
+    #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
+    pub id: Option<ObjectId>, //mongoDB automatically assigns an _id field
+    pub name: String,
+    pub description: String,
+}
+
 #[tokio::test]
 async fn test_insert_and_get_document() -> Result<(), Box<dyn Error>> {
     // Base URL for your local server
