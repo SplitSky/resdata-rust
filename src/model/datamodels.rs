@@ -8,3 +8,9 @@ pub struct MyDocument {
     pub name: String,
     pub description: String,
 }
+
+// NOTE: Datastructures to implement
+// Dataset
+// Experiment
+// Project
+//

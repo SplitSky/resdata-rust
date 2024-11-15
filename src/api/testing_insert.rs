@@ -12,9 +12,8 @@ pub async fn insert_dataset(
     let collection = db.collection::<MyDocument>("my_collection");
 
     let new_doc = MyDocument {
-        id: None,
-        name: json_body.name.clone(),
-        description: json_body.description.clone(),
+        id: None, // TODO: implement in all of them Euan trick
+        ..json_body.into_inner()
     };
 
     match collection.insert_one(new_doc, None).await {
