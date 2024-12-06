@@ -3,7 +3,7 @@ mod model;
 mod repository;
 
 use actix_web::{middleware::Logger, web::Data, App, HttpServer};
-use api::{testing_insert::insert_dataset, testing_read::get_document}; // api functions
+use api::{ftl::insert_dataset, ftl::get_document, authentication, permissions}; // api functions
 use dotenv::dotenv;
 use mongodb::{options::ClientOptions, Client};
 use std::env;

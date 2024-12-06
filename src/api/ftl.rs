@@ -45,3 +45,9 @@ pub async fn get_document(client: web::Data<Client>, path: web::Path<String>) ->
         }
     }
 }
+
+// #[get("/health")]
+//pub async fn list_collections_api(client: web::Data<Client>, path: web::Path<String>)
+// -> impl Responder {
+//    let db = client.database()
+// }
