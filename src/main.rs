@@ -3,11 +3,11 @@ mod model;
 mod repository;
 
 use actix_web::{middleware::Logger, web::Data, App, HttpServer};
-use api::{ftl::insert_dataset, ftl::get_document, authentication, permissions}; // api functions
+use api::{ftl::get_document, ftl::insert_dataset}; // api functions
 use dotenv::dotenv;
+use log::error;
 use mongodb::{options::ClientOptions, Client};
 use std::env;
-use log::error;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
