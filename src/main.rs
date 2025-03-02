@@ -1,43 +1,52 @@
-mod api;
-mod model;
-mod repository;
-
-use actix_web::{middleware::Logger, web::Data, App, HttpServer};
-use api::{ftl::get_document, ftl::insert_dataset}; // api functions
+use actix_web::{App, HttpServer, Responder, web};
 use dotenv::dotenv;
-use log::error;
-use mongodb::{options::ClientOptions, Client};
+use log::info;
+use middleware::db::Db;
+use mongodb::Client;
+use serde::{Deserialize, Serialize};
 use std::env;
+mod handlers;
+mod middleware;
+mod model;
+
+#[derive(Serialize, Deserialize, Clone)]
+struct MyData {
+    id: i32,
+    value: String,
+}
+
+async fn insert_data(client: web::Data<Client>) -> impl Responder {
+    let db = client.database(&env::var("DATABASE_NAME").unwrap());
+    let collection = db.collection::<MyData>("my_collection");
+    let data = MyData {
+        id: 1,
+        value: "Random Value".to_string(),
+    };
+    collection.insert_one(data.clone(), None).await.unwrap();
+    web::Json(data)
+}
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    std::env::set_var("RUST_LOG", "debug");
-    std::env::set_var("RUST_BACKTRACE", "1");
-    env_logger::init();
-    // fetch environmental variables
     dotenv().ok();
-    let connection_string = env::var("MONGO_URI").expect("MONGO_URI must be set in the .env");
-
-    println!("{}", connection_string.to_string());
-    // Parse and configure MongoDB client options
-    let client_options = ClientOptions::parse(&connection_string)
-        .await
-        .expect("Failed to Parse Mongo URI");
-    let mongo_client =
-        Client::with_options(client_options).expect("Failed to initialise MongoDB client");
-    // wrap mongo client in Actix Data for shared state
-    let mongo_data = Data::new(mongo_client);
-
+    env_logger::init();
+    let mongo_uri = env::var("MONGO_URI").expect("MONGO_URI must be set");
+    // let client_options = ClientOptions::parse(mongo_uri).await.unwrap();
+    // let client = Client::with_options(client_options).unwrap();
+    let db = Db::new(&mongo_uri).await;
+    info!("Starting server at http://127.0.0.1:8080");
     HttpServer::new(move || {
-        let logger = Logger::default();
         App::new()
-            .wrap(logger)
-            .app_data(mongo_data.clone()) // MongoDB shared state
-            .service(insert_dataset)
-            .service(get_document)
-        // .service() // add more calls
+            .app_data(web::Data::new(db.clone()))
+            .route("/insert", web::get().to(insert_data))
+            .service(
+                web::resource("/get/{id}").route(web::get().to(handlers::handlers::get_dataset)),
+            )
+            .service(
+                web::resource("/insert").route(web::post().to(handlers::handlers::insert_dataset)),
+            )
     })
-    .bind(("127.0.0.1", 8081))?
+    .bind("127.0.0.1:8080")?
     .run()
     .await
 }

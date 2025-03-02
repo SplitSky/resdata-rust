@@ -1,1 +1,1 @@
-pub mod datamodels;
+pub mod data_structs;
