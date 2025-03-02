@@ -5,9 +5,11 @@ use serde::{Deserialize, Serialize};
 pub struct Dataset {
     #[serde(rename = "_id", skip_serializing_if = "Option::is_none")]
     id: Option<ObjectId>, // Mongo auto id
-    data: Vec<i64>,
-    headers: Vec<String>,
-    author: Vec<String>,
+    name: String,
+    description: String,
+    // data: Vec<i64>,
+    // headers: Vec<String>,
+    // author: Vec<String>,
 }
 
 #[derive(Serialize, Deserialize)]

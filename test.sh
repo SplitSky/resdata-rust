@@ -8,6 +8,8 @@ test_insert_dataset() {
     local data='{"name": "Test", "description": "Test description"}'
     local response=$(curl -s -o /dev/null -w "%{http_code}" -X POST "$url" -H "Content-Type: application/json" -d "$data")
 
+    echo "$resposnse"
+
     if [ "$response" -eq 200 ]; then
         echo "Insert dataset test passed"
     else
