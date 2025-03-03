@@ -16,3 +16,15 @@ pub async fn get_dataset(db: web::Data<Db>, path: web::Path<String>) -> impl Res
         Err(_) => HttpResponse::InternalServerError().json("Failed to fetch document"),
     }
 }
+
+pub async fn list_datasets(db: web::Data<Db>, path: web::Path<String>) -> impl Responder {
+    match db.list_datasets().await {
+        Ok(Vec<Dataset>) => 
+
+
+
+        Ok(Some(doc)) => HttpResponse::Ok().json(doc),
+        Ok(None) => HttpResponse::NotFound().json("Document not found"),
+        Err(_) => HttpResponse::InternalServerError().json("Failed to fetch document"),
+    }
+}

@@ -1,6 +1,6 @@
 use crate::model::data_structs::Dataset; // , Experiment, Project};
-use futures::{TryStreamExt, stream::StreamExt};
-use mongodb::{Client, Collection, bson::Document, bson::doc, options::ClientOptions};
+use futures::TryStreamExt;
+use mongodb::{Client, Collection, bson::doc, options::ClientOptions};
 
 #[derive(Clone)]
 pub struct Db {
