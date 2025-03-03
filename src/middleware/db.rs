@@ -1,5 +1,6 @@
 use crate::model::data_structs::Dataset; // , Experiment, Project};
-use mongodb::{Client, Collection, bson::doc, options::ClientOptions};
+use futures::{TryStreamExt, stream::StreamExt};
+use mongodb::{Client, Collection, bson::Document, bson::doc, options::ClientOptions};
 
 #[derive(Clone)]
 pub struct Db {
@@ -21,5 +22,11 @@ impl Db {
 
     pub async fn get_dataset(&self, id: &str) -> mongodb::error::Result<Option<Dataset>> {
         return self.collection.find_one(doc! {"id": id}, None).await;
+    }
+
+    pub async fn list_datasets(&self) -> mongodb::error::Result<Vec<Dataset>> {
+        let cursor = self.collection.find(None, None).await?;
+        let results: Vec<Dataset> = cursor.try_collect().await?;
+        Ok(results)
     }
 }

@@ -29,7 +29,6 @@ test_get_dataset() {
     fi
 }
 
-# Run the tests
 test_insert_dataset
 test_get_dataset "1"
 
