@@ -19,11 +19,7 @@ pub async fn get_dataset(db: web::Data<Db>, path: web::Path<String>) -> impl Res
 
 pub async fn list_datasets(db: web::Data<Db>, path: web::Path<String>) -> impl Responder {
     match db.list_datasets().await {
-        Ok(Vec<Dataset>) => 
-
-
-
-        Ok(Some(doc)) => HttpResponse::Ok().json(doc),
+        Ok(Some(Vec<Dataset>)) => HttpResponse::Ok().json(doc),
         Ok(None) => HttpResponse::NotFound().json("Document not found"),
         Err(_) => HttpResponse::InternalServerError().json("Failed to fetch document"),
     }
