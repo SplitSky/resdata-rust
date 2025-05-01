@@ -21,7 +21,9 @@ impl Db {
     }
 
     pub async fn get_dataset(&self, id: &str) -> mongodb::error::Result<Option<Dataset>> {
-        let object_id = ObjectId::parse_str(id)?;
+        let object_id = ObjectId::parse_str(id).map_err(|e| {
+            mongodb::error::Error::custom(format!("Invalid ObjectId: {}", e))
+        })?;
         self.collection.find_one(doc! {"_id": object_id}, None).await
     }
 
