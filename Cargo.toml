@@ -14,3 +14,7 @@ env_logger = "0.9"
 rand = "0.8"
 tokio = {version = "1", features = ["full"]}
 futures = "0.3"
+
+[lib]
+name = "resdata_rust"
+path = "src/lib.rs"
