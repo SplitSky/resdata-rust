@@ -1,6 +1,6 @@
 use crate::model::data_structs::Dataset; // , Experiment, Project};
 use futures::TryStreamExt;
-use mongodb::{Client, Collection, bson::doc, options::ClientOptions};
+use mongodb::{bson::oid::ObjectId, bson::doc, options::ClientOptions, Client, Collection};
 
 #[derive(Clone)]
 pub struct Db {
@@ -8,20 +8,21 @@ pub struct Db {
 }
 
 impl Db {
-    pub async fn new(connection_string: &str) -> Self {
-        let client_options = ClientOptions::parse(connection_string).await.unwrap();
-        let client = Client::with_options(client_options).unwrap();
-        let database = client.database("test_database");
-        let collection = database.collection("test_collection");
-        Db { collection }
+    pub async fn new(connection_string: &str, database_name: &str, collection_name: &str) -> mongodb::error::Result<Self> {
+        let client_options = ClientOptions::parse(connection_string).await?;
+        let client = Client::with_options(client_options)?;
+        let database = client.database(database_name);
+        let collection = database.collection(collection_name);
+        Ok(Db { collection })
     }
 
     pub async fn insert_dataset(&self, doc: Dataset) -> mongodb::error::Result<()> {
-        return self.collection.insert_one(doc, None).await.map(|_| ());
+        self.collection.insert_one(doc, None).await.map(|_| ())
     }
 
     pub async fn get_dataset(&self, id: &str) -> mongodb::error::Result<Option<Dataset>> {
-        return self.collection.find_one(doc! {"id": id}, None).await;
+        let object_id = ObjectId::parse_str(id)?;
+        self.collection.find_one(doc! {"_id": object_id}, None).await
     }
 
     pub async fn list_datasets(&self) -> mongodb::error::Result<Vec<Dataset>> {
