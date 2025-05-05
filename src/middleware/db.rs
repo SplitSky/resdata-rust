@@ -3,7 +3,7 @@ use futures::TryStreamExt;
 use mongodb::{
     Client, Collection,
     bson::{doc, oid::ObjectId},
-    options::{ClientOptions, TlsOptions},
+    options::ClientOptions,
 };
 
 #[derive(Clone)]
