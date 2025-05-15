@@ -5,7 +5,7 @@ use log::error;
 
 fn handle_error<E: std::fmt::Debug>(error: E, message: &str) -> HttpResponse {
     error!("{}: {:?}", message, error);
-    HttpResponse::InternalServerError().json(message)
+    return HttpResponse::InternalServerError().json(message);
 }
 
 pub async fn insert_dataset(db: web::Data<Db>, item: web::Json<Dataset>) -> impl Responder {
