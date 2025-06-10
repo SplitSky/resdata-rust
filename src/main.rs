@@ -1,58 +1,66 @@
-use actix_web::{App, HttpServer, web};
-use dotenv::dotenv;
-use log::info;
-use middleware::db::Db;
-use serde::Deserialize;
-use std::env;
-mod handlers;
-mod middleware;
 mod model;
+#[cfg(test)]
+mod test;
 
-#[derive(Deserialize)]
-struct Config {
-    mongo_uri: String,
-    database_name: String,
-    collection_name: String,
+use actix_web::{App, HttpResponse, HttpServer, get, post, web};
+use model::User;
+use mongodb::{Client, Collection, IndexModel, bson::doc, options::IndexOptions};
+
+const DB_NAME: &str = "Test_DB";
+const COLL_NAME: &str = "users";
+
+#[post("/add_user")]
+async fn add_user(client: web::Data<Client>, form: web::Form<User>) -> HttpResponse {
+    let collection = client.database(DB_NAME).collection(COLL_NAME);
+    let result = collection.insert_one(form.into_inner()).await;
+    match result {
+        Ok(_) => HttpResponse::Ok().body("User added!"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
 }
 
-impl Config {
-    fn from_env() -> Self {
-        dotenv().ok();
-        Self {
-            mongo_uri: env::var("MONGO_URI").expect("MONGO_URI must be set"),
-            database_name: env::var("DATABASE_NAME").expect("DATABASE_NAME must be set"),
-            collection_name: env::var("COLLECTION_NAME").expect("COLLECTION_NAME must be set"),
+#[get("/get_user/{username}")]
+async fn get_user(client: web::Data<Client>, username: web::Path<String>) -> HttpResponse {
+    let username = username.into_inner();
+    let collection: Collection<User> = client.database(DB_NAME).collection(COLL_NAME);
+    match collection.find_one(doc! {"username" : &username}).await {
+        Ok(Some(user)) => HttpResponse::Ok().json(user),
+        Ok(None) => {
+            HttpResponse::NotFound().body(format!("No user found with username {username}"))
+        }
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string())
         }
     }
 }
 
+/// creates a username index forcing the names to be unique
+async fn create_username_index(client: &Client) {
+    let options = IndexOptions::builder().unique(true).build();
+    let model = IndexModel::builder()
+        .keys(doc! {"username" : 1})
+        .options(options)
+        .build();
+    client
+        .database(DB_NAME)
+        .collection::<User>(COLL_NAME)
+        .create_index(model)
+        .await
+        .expect("Creating an index should succeed")
+}
+
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
-    env_logger::init();
-    let config = Config::from_env();
+    let uri = std::env::var("MONGODB_URI").unwrap_or_else(|_| "mongodb://localhost:27017".into());
+    let client = Client::with_uri_str(uri).await.expect("Failed to connect");
+    create_username_index(&client).await;
 
-    let db = Db::new(
-        &config.mongo_uri,
-        &config.database_name,
-        &config.collection_name,
-    )
-    .await
-    .expect("Failed to initialize database");
-
-    info!("Starting server at http://127.0.0.1:8080");
     HttpServer::new(move || {
         App::new()
-            .app_data(web::Data::new(db.clone()))
-            .route(
-                "/insert",
-                web::post().to(handlers::handlers::insert_dataset),
-            )
-            .service(
-                web::resource("/get/{id}").route(web::get().to(handlers::handlers::get_dataset)),
-            )
-            .service(web::resource("/list").route(web::get().to(handlers::handlers::list_datasets)))
+            .app_data(web::Data::new(client.clone()))
+            .service(add_user)
+            .service(get_user)
     })
-    .bind("127.0.0.1:8080")?
+    .bind(("127.0.0.1", "8080"))?
     .run()
     .await
 }
