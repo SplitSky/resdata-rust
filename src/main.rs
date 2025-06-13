@@ -2,12 +2,8 @@ mod models;
 //#[cfg(test)]
 //mod test;
 use actix_web::{App, HttpResponse, HttpServer, get, post, web};
-use models::datastructs::User;
-use mongodb::{
-    Client, Collection, IndexModel,
-    bson::doc,
-    options::{IndexOptions, InsertOneOptions},
-};
+use models::datastructs::{Dataset, User};
+use mongodb::{Client, Collection, IndexModel, bson::doc, options::IndexOptions};
 
 const DB_NAME: &str = "Test_DB";
 const COLL_NAME: &str = "users";
@@ -39,11 +35,27 @@ async fn get_user(client: web::Data<Client>, username: web::Path<String>) -> Htt
 }
 
 #[post("/add_dataset")]
-async fn add_dataset(client: web::Data<Client>, form: web::Form<User>) -> HttpResponse {
+async fn add_dataset(client: web::Data<Dataset>, form: web::Form<Dataset>) -> HttpResponse {
     let collection = client.database(DB_NAME).collection(COLL_NAME);
     let result = collection.insert_one(form.into_inner(), None).await;
     match result {
         Ok(_) => HttpResponse::Ok().body("Dataset added"),
+        Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
+    }
+}
+
+#[get("/return_dataset/{dataset_id}")]
+async fn return_dataset(client: web::Data<Client>, dataset_id: web::Path<String>) -> HttpResponse {
+    let username = dataset_id.into_inner();
+    let collection: Collection<Dataset> = client.database(DB_NAME).collection(COLL_NAME);
+    match collection
+        .find_one(doc! {"username" : &username}, None)
+        .await
+    {
+        Ok(Some(user)) => HttpResponse::Ok().json(user),
+        Ok(None) => {
+            HttpResponse::NotFound().body(format!("No user found with username {username}"))
+        }
         Err(err) => HttpResponse::InternalServerError().body(err.to_string()),
     }
 }
